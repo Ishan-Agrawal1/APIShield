@@ -1,0 +1,21 @@
+version: '3.8'
+
+services:
+  vulnerable-api:
+    build:
+      context: ./vulnerable-api
+      dockerfile: Dockerfile
+    container_name: apishield-vulnerable-api
+    ports:
+      - "5001:5001"
+    environment:
+      - PORT=5001
+      - JWT_SECRET=super-insecure-secret-key-12345
+      - NODE_ENV=development
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:5001/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s

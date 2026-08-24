@@ -1,10 +1,17 @@
-import { Router, type Request, type Response } from 'express';
+/**
+ * Auth Routes
+ * 
+ * POST /api/auth/login — Login and receive JWT token
+ * 
+ * VULNERABILITY (V03): No rate limiting on login endpoint.
+ * → API4:2023 — Unrestricted Resource Consumption
+ */
+import { Router } from 'express';
+import { login } from '../controllers/authController.js';
 
 const router = Router();
 
-router.post('/login', (_req: Request, res: Response) => {
-  // Dummy login – in a real app you'd validate credentials.
-  res.json({ token: 'dummy-token' });
-});
+// POST /api/auth/login — No rate limiting applied (intentional vulnerability)
+router.post('/login', login);
 
 export default router;

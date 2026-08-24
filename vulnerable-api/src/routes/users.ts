@@ -1,21 +1,22 @@
-import { Router, type Request, type Response } from 'express';
-import users from '../data/users.js';
+/**
+ * User Routes
+ * 
+ * GET /api/users      — List all users (requires auth)
+ * GET /api/users/:id  — Get single user by ID (requires auth)
+ * 
+ * VULNERABILITY (V01): GET /:id does NOT check ownership (BOLA).
+ * → API1:2023 — Broken Object Level Authorization
+ */
+import { Router } from 'express';
+import { authMiddleware } from '../middleware/auth.js';
+import { getAllUsers, getUserById } from '../controllers/userController.js';
 
 const router = Router();
 
-// GET /users - list all users
-router.get('/', (_req: Request, res: Response) => {
-  res.json(users);
-});
+// GET /api/users — List all users (authenticated)
+router.get('/', authMiddleware, getAllUsers);
 
-// GET /users/:id - get a single user by id
-router.get('/:id', (req: Request, res: Response) => {
-  const id = Number(req.params.id);
-  const user = users.find(u => u.id === id);
-  if (!user) {
-    return res.status(404).json({ error: 'User not found' });
-  }
-  res.json(user);
-});
+// GET /api/users/:id — Get user by ID (authenticated, but NO ownership check)
+router.get('/:id', authMiddleware, getUserById);
 
 export default router;
