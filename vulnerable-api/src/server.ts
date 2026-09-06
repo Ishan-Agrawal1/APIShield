@@ -1,56 +1,68 @@
-/**
- * Vulnerable API Lab — Server Entry Point
- * 
- * Starts the Express server and seeds the in-memory data store.
- * 
- * Known vulnerabilities (intentional):
- *   V01 — BOLA (API1:2023)
- *   V02 — Broken Authentication (API2:2023)
- *   V03 — Unrestricted Resource Consumption (API4:2023)
- *   V04 — Security Misconfiguration (API8:2023)
- *   V05 — Improper Inventory Management (API9:2023)
- */
 import dotenv from 'dotenv';
 dotenv.config();
 
 import app from './app.js';
-import { resetStore } from './config/db.js';
+import { connectDB, connectWithRetry, disconnectDB } from './config/db.js';
+import { seedIfEmpty } from './config/seed.js';
+import { getPort } from './config/env.js';
 
-const PORT = process.env.PORT || 5001;
-
-// Seed the data store on startup
-resetStore();
-
-const server = app.listen(PORT, () => {
-  console.log('');
-  console.log('╔══════════════════════════════════════════════════════════════╗');
-  console.log('║          🔓 VULNERABLE API LABORATORY                      ║');
-  console.log('║          ⚠️  FOR TESTING PURPOSES ONLY                     ║');
-  console.log('╚══════════════════════════════════════════════════════════════╝');
-  console.log('');
-  console.log(`  🚀 Server running on http://localhost:${PORT}`);
-  console.log('');
-  console.log('  📋 Known Vulnerabilities:');
-  console.log('  ─────────────────────────');
-  console.log('  V01  BOLA                    GET  /api/users/:id');
-  console.log('  V02  Broken Authentication   GET  /api/admin/users');
-  console.log('  V03  Resource Consumption    POST /api/auth/login');
-  console.log('  V04  Security Misconfiguration    (headers, errors)');
-  console.log('  V05  Inventory Management    GET  /api/v1/users, /api/admin-old');
-  console.log('');
-  console.log('  🔑 Test Credentials:');
-  console.log('  ────────────────────');
-  console.log('  admin@test.com   / admin123');
-  console.log('  userA@test.com   / password123');
-  console.log('  userB@test.com   / password123');
-  console.log('');
-});
-
-server.on('error', (err: NodeJS.ErrnoException) => {
-  if (err.code === 'EADDRINUSE') {
-    console.error(`[Vulnerable API] ❌ Port ${PORT} is already in use.`);
-  } else {
-    console.error('[Vulnerable API] ❌ Server error:', err.message);
+async function connectLabDatabase(): Promise<void> {
+  if (process.env.USE_MEMORY_DB === 'true') {
+    await startMemoryMongo();
+    return;
   }
+
+  try {
+    await connectWithRetry(3, 500);
+  } catch (error) {
+    console.warn('[vulnerable-api] MongoDB is unavailable. Starting an ephemeral in-memory database for local lab use.');
+    console.warn('[vulnerable-api] For a reproducible MongoDB instance, run `docker compose up mongo` from the repository root.');
+    await disconnectDB();
+    try {
+      await startMemoryMongo();
+    } catch (memoryError) {
+      console.error('[vulnerable-api] In-memory MongoDB fallback failed:', memoryError);
+      throw error;
+    }
+  }
+}
+
+async function startMemoryMongo(): Promise<void> {
+  const { MongoMemoryServer } = await import('mongodb-memory-server');
+  const memory = await MongoMemoryServer.create();
+  await connectDB(memory.getUri());
+  console.log('[vulnerable-api] Using mongodb-memory-server for this process.');
+}
+
+const start = async (): Promise<void> => {
+  await connectLabDatabase();
+  await seedIfEmpty();
+
+  const port = getPort();
+  const server = app.listen(port, () => {
+    console.log('');
+    console.log('Vulnerable API lab listening on http://localhost:' + port);
+    console.log('This service is an intentionally vulnerable LOCAL test target.');
+    console.log('');
+    console.log('Seeded credentials:');
+    console.log('  user1@test.com / password123  (id=1)');
+    console.log('  user2@test.com / password123  (id=2)');
+    console.log('  admin@test.com / password123  (id=3)');
+    console.log('');
+    console.log('Structured HTTP events: stdout JSON lines and logs/http-events.jsonl');
+  });
+
+  server.on('error', (error: NodeJS.ErrnoException) => {
+    if (error.code === 'EADDRINUSE') {
+      console.error(`[vulnerable-api] Port ${port} is already in use.`);
+    } else {
+      console.error('[vulnerable-api] Server error:', error.message);
+    }
+    process.exit(1);
+  });
+};
+
+start().catch((error: unknown) => {
+  console.error('[vulnerable-api] Failed to start:', error);
   process.exit(1);
 });

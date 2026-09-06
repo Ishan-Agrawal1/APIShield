@@ -1,69 +1,82 @@
-/**
- * Authentication Controller
- * 
- * Handles user login and JWT token generation.
- * 
- * VULNERABILITY (V03): No rate limiting on login endpoint.
- * An attacker can make unlimited login attempts without throttling.
- * → API4:2023 — Unrestricted Resource Consumption
- */
 import type { Request, Response } from 'express';
 import bcryptjs from 'bcryptjs';
-import jwt from 'jsonwebtoken';
-import { getUserByEmail } from '../config/db.js';
+import { nextNumericId } from '../config/db.js';
+import { toPublicUser, User } from '../models/User.js';
+import { signAuthToken } from '../utils/tokens.js';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'super-insecure-secret-key-12345';
+export async function register(req: Request, res: Response): Promise<void> {
+  const email = typeof req.body?.email === 'string' ? req.body.email.trim() : '';
+  const password = typeof req.body?.password === 'string' ? req.body.password : '';
 
-/**
- * POST /api/auth/login
- * 
- * Accepts email + password, returns a JWT token on success.
- * 
- * VULNERABLE: No rate limiting — unlimited login attempts allowed.
- */
-export const login = async (req: Request, res: Response): Promise<void> => {
-  const { email, password } = req.body;
-
-  // Basic input validation
   if (!email || !password) {
     res.status(400).json({ error: 'Email and password are required.' });
     return;
   }
 
-  // Find user by email
-  const user = getUserByEmail(email);
+  const existing = await User.findOne({ email });
+  if (existing) {
+    res.status(409).json({ error: 'A user with that email already exists.' });
+    return;
+  }
+
+  const user = await User.create({
+    _id: await nextNumericId(User),
+    email,
+    password: await bcryptjs.hash(password, 10),
+    role: 'user',
+  });
+
+  const token = signAuthToken({
+    userId: user._id,
+    email: user.email,
+    role: user.role,
+  });
+
+  res.status(201).json({
+    token,
+    userId: user._id,
+  });
+}
+
+export async function login(req: Request, res: Response): Promise<void> {
+  const email = typeof req.body?.email === 'string' ? req.body.email.trim() : '';
+  const password = typeof req.body?.password === 'string' ? req.body.password : '';
+
+  if (!email || !password) {
+    res.status(400).json({ error: 'Email and password are required.' });
+    return;
+  }
+
+  const user = await User.findOne({ email });
   if (!user) {
-    // VULNERABILITY: Slightly different error message reveals whether email exists
     res.status(401).json({ error: 'Invalid credentials.' });
     return;
   }
 
-  // Verify password
-  const isMatch = await bcryptjs.compare(password, user.password);
-  if (!isMatch) {
+  const matches = await bcryptjs.compare(password, user.password);
+  if (!matches) {
     res.status(401).json({ error: 'Invalid credentials.' });
     return;
   }
 
-  // Generate JWT — no expiration set (another weakness for the lab)
-  const token = jwt.sign(
-    {
-      userId: user.id,
-      email: user.email,
-      role: user.role,
-    },
-    JWT_SECRET,
-    { expiresIn: '24h' }
-  );
+  const token = signAuthToken({
+    userId: user._id,
+    email: user.email,
+    role: user.role,
+  });
 
   res.json({
-    message: 'Login successful',
     token,
-    user: {
-      id: user.id,
-      name: user.name,
-      email: user.email,
-      role: user.role,
-    },
+    userId: user._id,
   });
-};
+}
+
+export async function me(req: Request, res: Response): Promise<void> {
+  const user = await User.findById(req.user?.userId);
+  if (!user) {
+    res.status(401).json({ error: 'Authenticated user no longer exists.' });
+    return;
+  }
+
+  res.json(toPublicUser(user));
+}

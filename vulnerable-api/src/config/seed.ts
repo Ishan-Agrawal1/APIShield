@@ -1,37 +1,72 @@
-/**
- * Seed script — resets the in-memory data store.
- * 
- * Run with: npm run seed
- * Also called automatically on server startup.
- */
-import { resetStore, getUsers, getProducts } from './db.js';
+import dotenv from 'dotenv';
+dotenv.config();
 
-console.log('╔══════════════════════════════════════════════╗');
-console.log('║   Vulnerable API Lab — Seed Script          ║');
-console.log('╚══════════════════════════════════════════════╝');
-console.log('');
+import bcryptjs from 'bcryptjs';
+import { Note } from '../models/Note.js';
+import { User } from '../models/User.js';
+import { connectDB, disconnectDB } from './db.js';
+import { SEED_NOTES, SEED_PASSWORD, SEED_USERS } from './fixtures.js';
 
-resetStore();
+export async function seedDatabase(): Promise<void> {
+  const passwordHash = await bcryptjs.hash(SEED_PASSWORD, 10);
 
-console.log('');
-console.log('Seeded Users:');
-console.log('─────────────');
-for (const u of getUsers()) {
-  console.log(`  ID: ${u.id} | ${u.name} | ${u.email} | Role: ${u.role}`);
+  await User.deleteMany({});
+  await Note.deleteMany({});
+
+  await User.create(
+    SEED_USERS.map((user) => ({
+      _id: user.id,
+      email: user.email,
+      password: passwordHash,
+      role: user.role,
+    })),
+  );
+
+  await Note.create(
+    SEED_NOTES.map((note) => ({
+      _id: note.id,
+      userId: note.userId,
+      title: note.title,
+      content: note.content,
+    })),
+  );
 }
 
-console.log('');
-console.log('Seeded Products:');
-console.log('────────────────');
-for (const p of getProducts()) {
-  console.log(`  ID: ${p.id} | ${p.name} | $${p.price} | Created by User ${p.createdBy}`);
+export async function seedIfEmpty(): Promise<void> {
+  const userCount = await User.countDocuments();
+  if (userCount === 0) {
+    await seedDatabase();
+    console.log('[vulnerable-api] Empty database seeded with default lab data.');
+    return;
+  }
+
+  console.log('[vulnerable-api] Database already contains users; skipping automatic seed.');
 }
 
-console.log('');
-console.log('Test Credentials:');
-console.log('─────────────────');
-console.log('  admin@test.com   / admin123');
-console.log('  userA@test.com   / password123');
-console.log('  userB@test.com   / password123');
-console.log('');
-console.log('✅ Seed complete.');
+const isDirectRun = process.argv[1]?.includes('seed');
+
+if (isDirectRun) {
+  const run = async (): Promise<void> => {
+    await connectDB();
+    await seedDatabase();
+
+    console.log('Vulnerable API lab data reset.');
+    console.log('');
+    console.log('Users:');
+    for (const user of SEED_USERS) {
+      console.log(`  id=${user.id}  ${user.email}  role=${user.role}  password=${user.password}`);
+    }
+    console.log('');
+    console.log('Notes:');
+    for (const note of SEED_NOTES) {
+      console.log(`  id=${note.id}  userId=${note.userId}  title="${note.title}"`);
+    }
+
+    await disconnectDB();
+  };
+
+  run().catch((error: unknown) => {
+    console.error('[vulnerable-api] Seed failed:', error);
+    process.exit(1);
+  });
+}

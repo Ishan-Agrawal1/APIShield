@@ -1,36 +1,24 @@
-/**
- * Route Index — Mounts all API route groups
- * 
- * Documented endpoints (in OpenAPI spec):
- *   /api/auth/*
- *   /api/users/*
- *   /api/products/*
- * 
- * Undocumented/legacy endpoints (V05 — Improper Inventory Management):
- *   /api/admin/users     — admin endpoint not in OpenAPI spec
- *   /api/v1/users        — versioned alias not in OpenAPI spec
- *   /api/admin-old       — deprecated legacy endpoint not in OpenAPI spec
- */
 import { Router } from 'express';
-import authRouter from './auth.js';
+import { getDebug, getHealth, getV1Notes, getV2Notes } from '../controllers/inventoryController.js';
+import { getProfile } from '../controllers/profileController.js';
+import { authMiddleware } from '../middleware/auth.js';
+import notesRouter from './notes.js';
 import usersRouter from './users.js';
-import adminRouter from './admin.js';
-import productsRouter from './products.js';
-import { legacyAdminUsers } from '../controllers/adminController.js';
 
 const router = Router();
 
-// ─── Documented Routes ───────────────────────────────────────────────
-router.use('/auth', authRouter);
+router.get('/health', getHealth);
+
+// Documented application routes
 router.use('/users', usersRouter);
-router.use('/products', productsRouter);
+router.use('/notes', notesRouter);
 
-// ─── Undocumented / Legacy Routes (V05 — Inventory Management) ──────
-// These endpoints are NOT listed in the OpenAPI specification.
-// The scanner should discover and flag them.
+// INTENTIONAL V3 — no authentication middleware
+router.get('/profile', getProfile);
 
-router.use('/admin/users', adminRouter);           // Admin panel — not in docs
-router.use('/v1/users', usersRouter);              // Legacy versioned alias
-router.get('/admin-old', legacyAdminUsers);        // Deprecated legacy endpoint
+// INTENTIONAL V5 — undocumented inventory endpoints
+router.get('/v1/notes', authMiddleware, getV1Notes);
+router.get('/v2/notes', authMiddleware, getV2Notes);
+router.get('/debug', getDebug);
 
 export default router;

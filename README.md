@@ -76,3 +76,19 @@ The project will initially focus on these selected vulnerabilities rather than a
                             ↓
                     Vulnerable API Lab
                        (Dockerized)
+```
+
+## Repository Structure
+
+These packages stay isolated:
+
+```text
+APIShield/
+├── backend/           # APIShield scanner and control API (future)
+├── vulnerable-api/    # Intentionally vulnerable local target API
+├── cpn-engine/        # CPN-based analysis (later)
+├── frontend/          # Dashboard (later)
+└── README.md
+```
+
+`vulnerable-api` is a controlled lab target. It is independently runnable and is not part of the scanner. See [`vulnerable-api/README.md`](./vulnerable-api/README.md) for setup, seed data, and the intentional BOLA scenario.

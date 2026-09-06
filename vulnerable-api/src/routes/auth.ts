@@ -1,17 +1,11 @@
-/**
- * Auth Routes
- * 
- * POST /api/auth/login — Login and receive JWT token
- * 
- * VULNERABILITY (V03): No rate limiting on login endpoint.
- * → API4:2023 — Unrestricted Resource Consumption
- */
 import { Router } from 'express';
-import { login } from '../controllers/authController.js';
+import { login, me, register } from '../controllers/authController.js';
+import { authMiddleware } from '../middleware/auth.js';
 
 const router = Router();
 
-// POST /api/auth/login — No rate limiting applied (intentional vulnerability)
+router.post('/register', register);
 router.post('/login', login);
+router.get('/me', authMiddleware, me);
 
 export default router;

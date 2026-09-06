@@ -1,18 +1,25 @@
-/**
- * User model interface for the vulnerable API lab.
- * 
- * Users have roles ("user" | "admin") used in authorization checks.
- * Passwords are stored as bcrypt hashes.
- */
-export interface User {
-  id: number;
-  name: string;
-  email: string;
-  password: string;  // bcrypt hash
-  role: 'user' | 'admin';
-}
+import mongoose, { type InferSchemaType } from 'mongoose';
 
-/**
- * Safe user representation (without password) for API responses.
- */
-export type SafeUser = Omit<User, 'password'>;
+const userSchema = new mongoose.Schema(
+  {
+    _id: { type: Number, required: true },
+    email: { type: String, required: true, unique: true },
+    password: { type: String, required: true },
+    role: { type: String, enum: ['user', 'admin'], required: true },
+  },
+  { versionKey: false },
+);
+
+export type UserDocument = InferSchemaType<typeof userSchema> & {
+  _id: number;
+};
+
+export const User = mongoose.model('User', userSchema);
+
+export function toPublicUser(user: UserDocument) {
+  return {
+    id: user._id,
+    email: user.email,
+    role: user.role,
+  };
+}
