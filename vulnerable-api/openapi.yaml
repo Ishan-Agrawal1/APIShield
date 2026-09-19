@@ -10,7 +10,8 @@ info:
     paths.
 
     Authentication works for the documented Notes operations. Object-level
-    authorization on `GET`/`PATCH /api/notes/{id}` is intentionally missing.
+    authorization on `GET`/`PATCH /api/notes/{id}` is intentionally missing
+    in vulnerable mode and enforced in fixed mode.
   version: 1.0.0
   contact:
     name: APIShield Team
@@ -115,6 +116,43 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+
+  /api/health:
+    get:
+      tags: [Inventory]
+      summary: Process health
+      security: []
+      responses:
+        '200':
+          description: Health status
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  service:
+                    type: string
+
+  /api/public/notices:
+    get:
+      tags: [Inventory]
+      summary: Public notices
+      description: Intentionally public. Unauthenticated access is not an authentication vulnerability.
+      security: []
+      responses:
+        '200':
+          description: Public notices
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  notices:
+                    type: array
+                    items:
+                      type: object
 
   /api/users:
     get:

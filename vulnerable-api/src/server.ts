@@ -4,7 +4,7 @@ dotenv.config();
 import app from './app.js';
 import { connectDB, connectWithRetry, disconnectDB } from './config/db.js';
 import { seedIfEmpty } from './config/seed.js';
-import { getPort } from './config/env.js';
+import { getBindHost, getPort } from './config/env.js';
 
 async function connectLabDatabase(): Promise<void> {
   if (process.env.USE_MEMORY_DB === 'true') {
@@ -39,9 +39,11 @@ const start = async (): Promise<void> => {
   await seedIfEmpty();
 
   const port = getPort();
-  const server = app.listen(port, () => {
+  const host = getBindHost();
+  const server = app.listen(port, host, () => {
     console.log('');
-    console.log('Vulnerable API lab listening on http://localhost:' + port);
+    console.log('Vulnerable API lab listening on http://' + host + ':' + port);
+    console.log('Mode: ' + (process.env.APP_MODE === 'fixed' ? 'fixed' : 'vulnerable'));
     console.log('This service is an intentionally vulnerable LOCAL test target.');
     console.log('');
     console.log('Seeded credentials:');

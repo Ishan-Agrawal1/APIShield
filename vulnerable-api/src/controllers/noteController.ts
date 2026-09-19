@@ -30,7 +30,11 @@ export async function listNotes(req: Request, res: Response): Promise<void> {
     }
   }
 
-  // INTENTIONAL V4: excessively large limit values are accepted.
+  // INTENTIONAL V4 in vulnerable mode: excessively large limit values are accepted.
+  if (process.env.APP_MODE === 'fixed' && requestedLimit !== null && requestedLimit > INTERNAL_NOTES_FETCH_CAP) {
+    res.status(400).json({ error: 'limit exceeds the documented maximum.' });
+    return;
+  }
   // Actual fetch work is capped so the lab does not become a real DoS target.
   const fetchLimit = requestedLimit === null
     ? INTERNAL_NOTES_FETCH_CAP
@@ -69,6 +73,7 @@ export async function createNote(req: Request, res: Response): Promise<void> {
     userId: requesterId,
     title,
     content,
+    visibility: 'private',
   });
 
   res.status(201).json(toPublicNote(note));
@@ -81,13 +86,24 @@ export async function getNoteById(req: Request, res: Response): Promise<void> {
     return;
   }
 
+  const requesterId = req.user?.userId;
+  if (!requesterId) {
+    res.status(401).json({ error: 'Unauthorized.' });
+    return;
+  }
+
   const note = await Note.findById(id);
   if (!note) {
     res.status(404).json({ error: 'Note not found.' });
     return;
   }
 
-  // INTENTIONAL V1 BOLA: authenticate the caller, but do not enforce note ownership.
+  if (process.env.APP_MODE === 'fixed' && note.visibility !== 'public' && note.userId !== requesterId) {
+    res.status(403).json({ error: 'Forbidden. Notes may only be read by their owner.' });
+    return;
+  }
+
+  // INTENTIONAL V1 BOLA in vulnerable mode: authenticate the caller, but do not enforce note ownership.
   res.json(toPublicNote(note));
 }
 
@@ -98,9 +114,20 @@ export async function patchNoteById(req: Request, res: Response): Promise<void> 
     return;
   }
 
+  const requesterId = req.user?.userId;
+  if (!requesterId) {
+    res.status(401).json({ error: 'Unauthorized.' });
+    return;
+  }
+
   const note = await Note.findById(id);
   if (!note) {
     res.status(404).json({ error: 'Note not found.' });
+    return;
+  }
+
+  if (process.env.APP_MODE === 'fixed' && note.userId !== requesterId) {
+    res.status(403).json({ error: 'Forbidden. Notes may only be modified by their owner.' });
     return;
   }
 
@@ -117,7 +144,7 @@ export async function patchNoteById(req: Request, res: Response): Promise<void> 
     note.content = req.body.content;
   }
 
-  // INTENTIONAL V2 BOLA: authenticate the caller, but do not enforce note ownership.
+  // INTENTIONAL V2 BOLA in vulnerable mode: authenticate the caller, but do not enforce note ownership.
   await note.save();
   res.json(toPublicNote(note));
 }

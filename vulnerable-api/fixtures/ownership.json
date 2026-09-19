@@ -1,0 +1,9 @@
+{
+  "objects": [
+    { "objectId": "1", "ownerPrincipalId": "userA", "visibility": "private" },
+    { "objectId": "2", "ownerPrincipalId": "userB", "visibility": "private" },
+    { "objectId": "3", "ownerPrincipalId": "admin", "visibility": "private" },
+    { "objectId": "4", "ownerPrincipalId": "userA", "visibility": "public" },
+    { "objectId": "999", "ownerPrincipalId": null, "visibility": "private" }
+  ]
+}

@@ -6,6 +6,7 @@ const noteSchema = new mongoose.Schema(
     userId: { type: Number, required: true, index: true },
     title: { type: String, required: true },
     content: { type: String, required: true, default: '' },
+    visibility: { type: String, enum: ['private', 'public'], required: true, default: 'private' },
   },
   {
     versionKey: false,
@@ -27,6 +28,7 @@ export function toPublicNote(note: NoteDocument) {
     userId: note.userId,
     title: note.title,
     content: note.content,
+    visibility: note.visibility ?? 'private',
     createdAt: note.createdAt.toISOString(),
     updatedAt: note.updatedAt.toISOString(),
   };

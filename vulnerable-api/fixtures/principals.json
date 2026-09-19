@@ -1,0 +1,5 @@
+[
+  { "id": "userA", "label": "User A", "credentialReference": "demo.userA", "email": "user1@test.com" },
+  { "id": "userB", "label": "User B", "credentialReference": "demo.userB", "email": "user2@test.com" },
+  { "id": "admin", "label": "Admin", "credentialReference": "demo.admin", "email": "admin@test.com" }
+]

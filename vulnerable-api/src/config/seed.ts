@@ -2,12 +2,19 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 import bcryptjs from 'bcryptjs';
+import mongoose from 'mongoose';
 import { Note } from '../models/Note.js';
 import { User } from '../models/User.js';
 import { connectDB, disconnectDB } from './db.js';
+import { isDemoDatabaseName } from './env.js';
 import { SEED_NOTES, SEED_PASSWORD, SEED_USERS } from './fixtures.js';
 
 export async function seedDatabase(): Promise<void> {
+  const dbName = mongoose.connection.name;
+  if (!isDemoDatabaseName(dbName)) {
+    throw new Error(`Refusing to seed non-demo database "${dbName ?? 'unknown'}".`);
+  }
+
   const passwordHash = await bcryptjs.hash(SEED_PASSWORD, 10);
 
   await User.deleteMany({});
@@ -28,6 +35,7 @@ export async function seedDatabase(): Promise<void> {
       userId: note.userId,
       title: note.title,
       content: note.content,
+      visibility: note.visibility,
     })),
   );
 }

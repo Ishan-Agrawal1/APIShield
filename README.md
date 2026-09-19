@@ -1,94 +1,88 @@
 # APIShield
 
-### Automated REST API Vulnerability Detection & Security Assessment System
-
-APIShield is an Information Security project that aims to provide an automated and explainable security assessment platform for REST APIs.
-
-The system analyzes an authorized REST API, discovers its endpoints, performs selected security checks, identifies potential vulnerabilities, maps the findings to the OWASP API Security Top 10, assigns severity, and provides mitigation recommendations through a web-based dashboard.
-
----
-
-## Objective
-
-To develop an automated REST API security assessment system capable of identifying common API security vulnerabilities and providing understandable security findings, severity assessment, OWASP classification, and remediation recommendations.
-
----
-
-## Security Areas
-
-The initial version of APIShield focuses on the following OWASP API Security risks:
-
-1. **API1:2023 – Broken Object Level Authorization (BOLA)**
-2. **API2:2023 – Broken Authentication**
-3. **API4:2023 – Unrestricted Resource Consumption**
-4. **API8:2023 – Security Misconfiguration**
-5. **API9:2023 – Improper Inventory Management**
-
-The project will initially focus on these selected vulnerabilities rather than attempting to implement the complete OWASP API Security Top 10.
-
----
-
-## Planned Features
-
-- REST API security assessment
-- OpenAPI/Swagger specification support
-- API endpoint discovery
-- Authentication security analysis
-- Broken Object Level Authorization detection
-- Rate-limit and resource-consumption testing
-- Security configuration analysis
-- API inventory analysis
-- OWASP API Security Top 10 mapping
-- Vulnerability severity assessment
-- Evidence-based vulnerability reports
-- Mitigation recommendations
-- Security score generation
-- Scan history and result storage
-- Web-based security dashboard
-- Dockerized vulnerable API testing environment
-
----
-
-## System Architecture
+Automated REST API vulnerability detection for **authorized** local targets. This repository implements the connected MVP:
 
 ```text
-                         APIShield
-                            │
-              ┌─────────────┴─────────────┐
-              │                           │
-        React Frontend              Express Backend
-              │                           │
-              │                    ┌──────┴───────┐
-              │                    │              │
-              │                 REST API       Scanner
-              │                    │              │
-              │                    │        ┌─────┼─────┐
-              │                    │        │     │     │
-              │                    │      Auth  BOLA  Config
-              │                    │
-              │                    ↓
-              │                 MongoDB
-              │
-              └────────── HTTP ──────────────┘
-
-                         Scanner
-                            │
-                            ↓
-                    Vulnerable API Lab
-                       (Dockerized)
+OpenAPI YAML/JSON
+  -> parser / discovery
+  -> deterministic test-case generation
+  -> central HTTP executor
+  -> local notes API (vulnerable and fixed modes)
+  -> BOLA, authentication, and misconfiguration checks
+  -> MongoDB findings
+  -> rule-based explanation (optional AI)
+  -> dashboard and printable report
 ```
 
-## Repository Structure
+## Stack
 
-These packages stay isolated:
+- Backend: Express 5 + TypeScript + MongoDB/Mongoose
+- Frontend: Next.js App Router + TypeScript
+- Lab target: `vulnerable-api/` (intentionally vulnerable Notes API, plus a fixed-mode twin)
+- Contracts: `shared/` (`@apishield/contracts`)
+
+PostgreSQL is not used.
+
+## Requirements
+
+- Node.js 20+
+- MongoDB 7 on `127.0.0.1:27017` (Docker Compose provided)
+- Docker is optional but is the reproducible way to start Mongo and the lab APIs
+
+## Setup
+
+```bash
+node scripts/bootstrap-secrets.mjs
+npm run install:all
+```
+
+Copy `.env.example` files if you prefer to edit them by hand. Bootstrap will not overwrite existing values.
+
+## Commands
+
+| Command | Purpose |
+| --- | --- |
+| `npm run dev` | Start vulnerable-api, backend, and Next.js on loopback |
+| `npm run demo:up` | Start Mongo via Compose and the vulnerable/fixed lab APIs |
+| `npm run demo:seed` | Idempotently reseed only the demo databases |
+| `npm run demo:verify` | Drive APIShield through its control API (requires `APISHIELD_OPERATOR_TOKEN`) |
+| `npm run demo:down` | Stop owned Compose services |
+| `npm run test:unit` | Unit tests |
+| `npm run test:integration` | Backend integration tests (ephemeral Mongo + local lab process) |
+| `npm run verify` | lint, typecheck, unit, integration, build |
+
+Default ports: backend `127.0.0.1:5000`, frontend `127.0.0.1:3000`, vulnerable API `127.0.0.1:5001`, fixed API `127.0.0.1:5002`.
+
+## Dashboard
+
+The Next.js UI is a connected operator console, not an analytics product.
+
+- `/` scan history
+- `/specifications/new` OpenAPI upload
+- `/specifications/[id]` discovery and support matrix
+- `/scans/new` target selection, ownership fixtures, optional runtime tokens (component state only), case preview
+- `/scans/[id]` live progress, coverage, findings
+- `/findings/[id]` evidence and rule-based or AI-assisted explanation
+- `/scans/[id]/report` JSON/HTML export
+
+The browser never receives `APISHIELD_OPERATOR_TOKEN`. Next.js route handlers inject it server-side.
+
+## Authorized use
+
+Scan only the server-side target profiles. Uploaded OpenAPI `servers` values and browser-submitted URLs cannot grant network access.
+
+Demonstration credentials (`user1@test.com` / `password123`) are local lab fixtures. They are not APIShield operator credentials.
+
+## Layout
 
 ```text
 APIShield/
-├── backend/           # APIShield scanner and control API (future)
-├── vulnerable-api/    # Intentionally vulnerable local target API
-├── cpn-engine/        # CPN-based analysis (later)
-├── frontend/          # Dashboard (later)
-└── README.md
+  backend/          Control API and scanners
+  frontend/         Next.js dashboard
+  vulnerable-api/   Intentionally vulnerable / fixed local target
+  shared/           Canonical contracts
+  scripts/          Portable Node orchestration
+  docs/             Plans, status, support matrix
 ```
 
-`vulnerable-api` is a controlled lab target. It is independently runnable and is not part of the scanner. See [`vulnerable-api/README.md`](./vulnerable-api/README.md) for setup, seed data, and the intentional BOLA scenario.
+`cpn-engine/` remains out of MVP scope.

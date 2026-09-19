@@ -26,6 +26,8 @@ describe('OpenAPI specification', () => {
       '/auth/register',
       '/auth/login',
       '/auth/me',
+      '/api/health',
+      '/api/public/notices',
       '/api/users',
       '/api/users/{id}',
       '/api/notes',

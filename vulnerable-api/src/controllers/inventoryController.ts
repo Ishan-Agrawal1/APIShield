@@ -47,11 +47,18 @@ export async function getV2Notes(req: Request, res: Response): Promise<void> {
 }
 
 export function getDebug(_req: Request, res: Response): void {
+  if (process.env.APP_MODE === 'fixed') {
+    res.status(404).json({ error: 'Not Found' });
+    return;
+  }
+
+  const stack = new Error('lab debug').stack;
   res.json({
     service: 'vulnerable-api',
     version: '1.0.0',
     status: 'ok',
     purpose: 'lab diagnostic',
+    stack,
     documentedInventory: [
       'POST /auth/register',
       'POST /auth/login',
@@ -63,8 +70,22 @@ export function getDebug(_req: Request, res: Response): void {
       'GET /api/notes/{id}',
       'PATCH /api/notes/{id}',
       'DELETE /api/notes/{id}',
+      'GET /api/health',
+      'GET /api/public/notices',
     ],
     note: 'This endpoint is intentionally omitted from openapi.yaml so APIShield can later compare declared versus observed inventory.',
+  });
+}
+
+export function getPublicNotices(_req: Request, res: Response): void {
+  res.json({
+    notices: [
+      {
+        id: 4,
+        title: 'Shared lab notice',
+        body: 'Public by design. Unauthenticated access is intentional and is not an authentication finding.',
+      },
+    ],
   });
 }
 

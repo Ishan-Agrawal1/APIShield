@@ -1,0 +1,103 @@
+[
+  {
+    "id": "demo-vulnerable",
+    "label": "Local notes API (vulnerable)",
+    "approvedOrigin": "http://127.0.0.1:5001",
+    "basePath": "",
+    "pathScopePrefixes": ["/", "/auth", "/api"],
+    "approvedMethods": ["GET", "HEAD", "OPTIONS", "POST"],
+    "executionLimits": {},
+    "credentialReferences": ["demo.userA", "demo.userB"],
+    "loginPath": "/auth/login",
+    "expiredCredentialHelperPath": "/api/lab/expired-token",
+    "authenticationProbes": [{ "method": "GET", "pathTemplate": "/api/profile" }],
+    "supportedAuthentication": ["http-bearer"],
+    "optionalCheckSettings": {
+      "resourceObservations": false,
+      "corsBrowserConfirmation": false
+    },
+    "accessPolicy": {
+      "principals": [
+        { "id": "userA", "label": "User A", "credentialReference": "demo.userA" },
+        { "id": "userB", "label": "User B", "credentialReference": "demo.userB" }
+      ],
+      "objects": [
+        { "objectId": "1", "ownerPrincipalId": "userA", "visibility": "private" },
+        { "objectId": "2", "ownerPrincipalId": "userB", "visibility": "private" },
+        { "objectId": "3", "ownerPrincipalId": "admin", "visibility": "private" },
+        { "objectId": "4", "ownerPrincipalId": "userA", "visibility": "public" }
+      ],
+      "rules": [
+        { "principalId": "userA", "objectId": "1", "allowed": true },
+        { "principalId": "userA", "objectId": "2", "allowed": false },
+        { "principalId": "userA", "objectId": "4", "allowed": true },
+        { "principalId": "userB", "objectId": "2", "allowed": true },
+        { "principalId": "userB", "objectId": "1", "allowed": false }
+      ]
+    },
+    "bolaCases": [
+      {
+        "endpointId": "notes-by-id",
+        "pathTemplate": "/api/notes/{id}",
+        "method": "get",
+        "objectParameterName": "id",
+        "ownPrincipalId": "userA",
+        "foreignPrincipalId": "userB",
+        "ownObjectId": "1",
+        "foreignObjectId": "2",
+        "identitySelectors": ["id", "userId"],
+        "protectedFieldSelectors": ["title", "content"],
+        "volatileFieldSelectors": ["createdAt", "updatedAt"]
+      }
+    ]
+  },
+  {
+    "id": "demo-fixed",
+    "label": "Local notes API (fixed)",
+    "approvedOrigin": "http://127.0.0.1:5002",
+    "basePath": "",
+    "pathScopePrefixes": ["/", "/auth", "/api"],
+    "approvedMethods": ["GET", "HEAD", "OPTIONS", "POST"],
+    "executionLimits": {},
+    "credentialReferences": ["demo.userA", "demo.userB"],
+    "loginPath": "/auth/login",
+    "expiredCredentialHelperPath": "/api/lab/expired-token",
+    "authenticationProbes": [{ "method": "GET", "pathTemplate": "/api/profile" }],
+    "supportedAuthentication": ["http-bearer"],
+    "optionalCheckSettings": {
+      "resourceObservations": false,
+      "corsBrowserConfirmation": false
+    },
+    "accessPolicy": {
+      "principals": [
+        { "id": "userA", "label": "User A", "credentialReference": "demo.userA" },
+        { "id": "userB", "label": "User B", "credentialReference": "demo.userB" }
+      ],
+      "objects": [
+        { "objectId": "1", "ownerPrincipalId": "userA", "visibility": "private" },
+        { "objectId": "2", "ownerPrincipalId": "userB", "visibility": "private" },
+        { "objectId": "4", "ownerPrincipalId": "userA", "visibility": "public" }
+      ],
+      "rules": [
+        { "principalId": "userA", "objectId": "1", "allowed": true },
+        { "principalId": "userA", "objectId": "2", "allowed": false },
+        { "principalId": "userB", "objectId": "2", "allowed": true }
+      ]
+    },
+    "bolaCases": [
+      {
+        "endpointId": "notes-by-id",
+        "pathTemplate": "/api/notes/{id}",
+        "method": "get",
+        "objectParameterName": "id",
+        "ownPrincipalId": "userA",
+        "foreignPrincipalId": "userB",
+        "ownObjectId": "1",
+        "foreignObjectId": "2",
+        "identitySelectors": ["id", "userId"],
+        "protectedFieldSelectors": ["title", "content"],
+        "volatileFieldSelectors": ["createdAt", "updatedAt"]
+      }
+    ]
+  }
+]

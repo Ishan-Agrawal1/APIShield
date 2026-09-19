@@ -1,12 +1,52 @@
 import mongoose from 'mongoose';
+import { loadEnv } from './env.js';
 
-export const connectDB = async (): Promise<void> => {
-  try {
-    const connStr = process.env.MONGO_URI || 'mongodb://localhost:27017/apishield';
-    await mongoose.connect(connStr);
-    console.log(`[Database] Connected to MongoDB: ${mongoose.connection.host}`);
-  } catch (error) {
-    console.error('[Database] Connection failed:', error);
-    process.exit(1);
+export async function connectDB(uri = loadEnv().mongoUri): Promise<void> {
+  if (mongoose.connection.readyState === 1) {
+    return;
   }
-};
+  if (mongoose.connection.readyState !== 0) {
+    await mongoose.disconnect();
+  }
+  await mongoose.connect(uri, { serverSelectionTimeoutMS: 3000 });
+}
+
+export async function disconnectDB(): Promise<void> {
+  if (mongoose.connection.readyState !== 0) {
+    await mongoose.disconnect();
+  }
+}
+
+export function isMongoReady(): boolean {
+  return mongoose.connection.readyState === 1;
+}
+
+export async function pingMongo(): Promise<boolean> {
+  if (!isMongoReady() || !mongoose.connection.db) {
+    return false;
+  }
+  try {
+    await mongoose.connection.db.admin().command({ ping: 1 });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+export async function reconcileOrphanedScans(): Promise<number> {
+  if (!isMongoReady()) {
+    return 0;
+  }
+  const { ScanModel } = await import('../models/Scan.js');
+  const result = await ScanModel.updateMany(
+    { status: { $in: ['queued', 'running'] } },
+    {
+      $set: {
+        status: 'failed',
+        completedAt: new Date().toISOString(),
+        errorLog: [{ code: 'INTERRUPTED', message: 'Scan was interrupted by a process restart.' }],
+      },
+    },
+  );
+  return result.modifiedCount;
+}

@@ -1,6 +1,5 @@
 # Dependencies
 node_modules/
-package-lock.json
 yarn.lock
 pnpm-lock.yaml
 
@@ -26,7 +25,6 @@ pnpm-lock.yaml
 
 # OS Files
 Thumbs.db
-.DS_Store
 .AppleDouble
 .LSOverride
 ._*
@@ -57,6 +55,8 @@ coverage/
 .nyc_output/
 .mocha_output/
 jest-coverage/
+playwright-report/
+test-results/
 
 # Temporary files
 tmp/
@@ -65,17 +65,14 @@ temp/
 
 # Docker
 docker-compose.override.yml
-.dockerignore
 
 # Node-gyp
-build/
 .node-gyp/
 
 # Misc
 .eslintcache
 .stylelintcache
 *.tsbuildinfo
-.turbo/
 
 # Local development
 .local

@@ -1,0 +1,27 @@
+export const LIMITS = {
+  openApiUploadBytes: 2 * 1024 * 1024,
+  httpTimeoutMs: 5_000,
+  maxHttpAttemptsPerScan: 100,
+  concurrentTargetRequests: 2,
+  maxTargetRequestStartsPerSecond: 2,
+  maxRequestBodyBytes: 64 * 1024,
+  maxCapturedResponseBytes: 256 * 1024,
+  resourceProbeRepetition: 5,
+  documentNestingDepth: 32,
+  documentNodeCount: 20_000,
+  refResolutionExpansions: 500,
+  generatedCasesPerEndpoint: 12,
+  generatedCasesPerScan: 400,
+  maxUrlLength: 2_048,
+  maxHeaderValueLength: 4_096,
+  maxScanDurationMs: 120_000,
+  bolaBaselineReservation: 3,
+  aiRequestTimeoutMs: 10_000,
+  aiResponseSizeBytes: 32 * 1024,
+  sanitizerMaxDepth: 12,
+  sanitizerMaxNodes: 2_000,
+  sanitizerMaxStringLength: 8_192,
+  maxScanQueue: 4,
+} as const;
+
+export type LimitName = keyof typeof LIMITS;

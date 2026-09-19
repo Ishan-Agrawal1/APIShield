@@ -11,7 +11,9 @@
     "start:prod": "node dist/server.js",
     "compile": "tsc",
     "seed": "tsx src/config/seed.ts",
-    "test": "node --import tsx --test --test-concurrency=1 --test-timeout=120000 tests/auth.test.ts tests/notes.test.ts tests/bola.test.ts tests/profile.test.ts tests/resource.test.ts tests/inventory.test.ts tests/logging.test.ts tests/openapi.test.ts",
+    "openapi:json": "node scripts/openapi-json.mjs",
+    "test": "node --import tsx --test --test-concurrency=1 --test-timeout=120000 tests/auth.test.ts tests/notes.test.ts tests/bola.test.ts tests/profile.test.ts tests/resource.test.ts tests/inventory.test.ts tests/logging.test.ts tests/openapi.test.ts tests/fixed-mode.test.ts",
+    "lint": "tsc --noEmit",
     "typecheck": "tsc --noEmit"
   },
   "author": "Ishan Agrawal",

@@ -20,8 +20,8 @@ export async function startTestDatabase(): Promise<void> {
     return;
   }
 
-  if (process.env.MONGO_URI) {
-    await connectDB(process.env.MONGO_URI);
+  if (process.env.TEST_MONGO_URI) {
+    await connectDB(process.env.TEST_MONGO_URI);
     return;
   }
 

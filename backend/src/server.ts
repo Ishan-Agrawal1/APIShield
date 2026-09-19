@@ -1,25 +1,42 @@
-import dotenv from 'dotenv';
+import { loadEnv } from './config/env.js';
 import app from './app.js';
-import { connectDB } from './config/db.js';
+import { connectDB, disconnectDB, reconcileOrphanedScans } from './config/db.js';
 
-dotenv.config();
-
-const PORT = process.env.PORT || 5000;
+const env = loadEnv();
 
 const startServer = async (): Promise<void> => {
   try {
-    // 1. Database connection
     await connectDB();
+    const orphaned = await reconcileOrphanedScans();
+    if (orphaned > 0) {
+      console.log(JSON.stringify({ msg: 'Reconciled interrupted scans', count: orphaned }));
+    }
+    const server = app.listen(env.port, env.bindHost, () => {
+      console.log(
+        JSON.stringify({
+          msg: 'APIShield backend listening',
+          host: env.bindHost,
+          port: env.port,
+          notice: 'Authorized local demo only. Uploaded OpenAPI servers cannot grant network access.',
+        }),
+      );
+    });
 
-    // 2 & 3. Express server -> listen()
-    app.listen(PORT, () => {
-      console.log(`[Server] Express server running on port ${PORT}`);
-      console.log(`[Server] Environment: ${process.env.NODE_ENV || 'development'}`);
+    const shutdown = async () => {
+      server.close();
+      await disconnectDB();
+      process.exit(0);
+    };
+    process.on('SIGINT', () => {
+      void shutdown();
+    });
+    process.on('SIGTERM', () => {
+      void shutdown();
     });
   } catch (error) {
-    console.error('[Server] Failed to start server:', error);
+    console.error('[Server] Failed to start server:', error instanceof Error ? error.message : error);
     process.exit(1);
   }
 };
 
-startServer();
+void startServer();

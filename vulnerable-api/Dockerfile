@@ -19,6 +19,7 @@ RUN npm install --omit=dev
 
 COPY --from=builder /app/dist ./dist
 COPY openapi.yaml ./openapi.yaml
+COPY fixtures ./fixtures
 
 EXPOSE 5001
 

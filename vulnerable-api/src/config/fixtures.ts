@@ -12,18 +12,28 @@ export const SEED_NOTES = [
     userId: 1,
     title: 'User 1 Note',
     content: 'Private note belonging to User 1.',
+    visibility: 'private' as const,
   },
   {
     id: 2,
     userId: 2,
     title: 'User 2 Note',
     content: 'Private note belonging to User 2.',
+    visibility: 'private' as const,
   },
   {
     id: 3,
     userId: 3,
     title: 'Admin Note',
     content: 'Private note belonging to Admin.',
+    visibility: 'private' as const,
+  },
+  {
+    id: 4,
+    userId: 1,
+    title: 'Shared lab notice',
+    content: 'This notice is intentionally public in the ownership fixture.',
+    visibility: 'public' as const,
   },
 ] as const;
 

@@ -1,0 +1,22 @@
+{
+  "name": "apishield",
+  "private": true,
+  "version": "0.1.0",
+  "description": "APIShield MVP orchestration",
+  "scripts": {
+    "install:all": "node scripts/install-all.mjs",
+    "dev": "node scripts/dev.mjs",
+    "lint": "node scripts/run-in.mjs lint",
+    "typecheck": "node scripts/run-in.mjs typecheck",
+    "test:unit": "npm --prefix backend run test:unit && npm --prefix vulnerable-api run test",
+    "test:integration": "npm --prefix backend run test:integration",
+    "test:e2e": "npm --prefix frontend run test:e2e",
+    "build": "node scripts/run-in.mjs build",
+    "demo:up": "node scripts/demo-up.mjs",
+    "demo:seed": "node scripts/demo-seed.mjs",
+    "demo:verify": "node scripts/demo-verify.mjs",
+    "demo:down": "node scripts/demo-down.mjs",
+    "verify": "node scripts/verify.mjs",
+    "bootstrap": "node scripts/bootstrap-secrets.mjs"
+  }
+}
