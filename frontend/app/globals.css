@@ -1,32 +1,76 @@
-:root {
-  --bg: #10140f;
-  --panel: #171c16;
-  --ink: #e7eedc;
-  --muted: #9aa58c;
-  --line: #2a3326;
-  --accent: #d6b25e;
-  --danger: #e07a5f;
-  --ok: #8fb39a;
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --bg: #050505;
+    --panel: #0a0a0a;
+    --border: #1a1a1a;
+    --text: #e0e0e0;
+    --muted: #666666;
+    --critical: #ff003c;
+    --high: #ff8800;
+    --medium: #ffcc00;
+    --low: #00ccff;
+    --info: #33ff55;
+    --accent: #00ffcc;
+  }
+  
+  html, body {
+    margin: 0;
+    padding: 0;
+    background-color: var(--bg);
+    color: var(--text);
+    font-family: "Courier New", Courier, monospace;
+    font-size: 14px;
+    line-height: 1.4;
+  }
+
+  a {
+    color: var(--accent);
+    text-decoration: none;
+  }
+  
+  a:hover {
+    text-decoration: underline;
+  }
+
+  /* Keep legacy classes for pages we haven't touched yet, but reskin them to terminal mode */
+  .shell { @apply max-w-[1400px] mx-auto p-4; }
+  .top { @apply flex justify-between items-center border-b border-terminal-border pb-3 mb-4; }
+  .brand { @apply text-terminal-accent font-bold tracking-wider; }
+  .notice { @apply border border-terminal-muted text-terminal-muted p-2 text-xs mb-4; }
+  .panel { @apply bg-terminal-panel border border-terminal-border p-4 mb-4; }
+  
+  input, select, textarea {
+    @apply bg-terminal-bg text-terminal-text border border-terminal-border p-2 w-full focus:border-terminal-accent focus:outline-none focus:ring-1 focus:ring-terminal-accent;
+  }
+  
+  button, .button {
+    @apply bg-terminal-border text-terminal-text border border-terminal-muted px-4 py-2 uppercase font-bold tracking-widest cursor-pointer hover:border-terminal-accent hover:text-terminal-accent transition-colors;
+  }
+  
+  button:disabled {
+    @apply opacity-50 cursor-not-allowed hover:border-terminal-muted hover:text-terminal-text;
+  }
+  
+  .error { @apply text-terminal-critical; }
+  .muted { @apply text-terminal-muted; }
+  
+  table { @apply w-full border-collapse text-left; }
+  th, td { @apply border-b border-terminal-border p-2 align-top; }
+  th { @apply text-terminal-muted uppercase text-xs tracking-wider font-normal; }
+  
+  pre { @apply whitespace-pre-wrap overflow-auto bg-terminal-bg border border-terminal-border p-3 text-xs text-terminal-text; }
+  
+  h1 { @apply text-xl uppercase tracking-wider text-terminal-accent mb-4 mt-0; }
+  h2 { @apply text-lg uppercase tracking-wider text-terminal-text mt-6 mb-3 border-b border-terminal-border pb-1; }
+  h3 { @apply text-base uppercase tracking-wider text-terminal-muted mt-4 mb-2; }
 }
-* { box-sizing: border-box; }
-html, body { margin: 0; padding: 0; background: var(--bg); color: var(--ink); font-family: "Segoe UI", sans-serif; }
-a { color: var(--accent); text-decoration: none; }
-.shell { max-width: 1080px; margin: 0 auto; padding: 1.25rem; }
-.top { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--line); padding-bottom: 0.75rem; }
-.brand { color: var(--ink); font-weight: 700; letter-spacing: 0.04em; }
-nav { display: flex; gap: 1rem; }
-.notice { border: 1px solid var(--accent); color: var(--accent); padding: 0.6rem 0.8rem; font-size: 0.9rem; }
-.panel { background: var(--panel); border: 1px solid var(--line); padding: 1rem; margin: 1rem 0; }
-label { display: block; margin: 0.75rem 0 0.25rem; color: var(--muted); }
-label.check { display: flex; gap: 0.5rem; align-items: center; color: var(--ink); }
-label.check input { width: auto; }
-.filters { display: flex; gap: 0.75rem; align-items: flex-end; flex-wrap: wrap; margin: 0.75rem 0 1rem; }
-.filters select { width: auto; min-width: 10rem; }
-input, textarea, select { width: 100%; padding: 0.55rem; background: #10140f; color: var(--ink); border: 1px solid var(--line); }
-button, .button { background: var(--accent); color: #111; border: 0; padding: 0.55rem 0.9rem; font-weight: 700; cursor: pointer; display: inline-block; }
-button:disabled { opacity: 0.6; cursor: not-allowed; }
-.muted { color: var(--muted); }
-.error { color: var(--danger); }
-table { width: 100%; border-collapse: collapse; }
-th, td { border-bottom: 1px solid var(--line); padding: 0.5rem; text-align: left; vertical-align: top; }
-pre { white-space: pre-wrap; overflow: auto; background: #0c0f0b; padding: 0.75rem; }
+
+@layer utilities {
+  .focus-visible-ring {
+    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-terminal-accent focus-visible:ring-offset-2 focus-visible:ring-offset-terminal-bg;
+  }
+}
