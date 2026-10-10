@@ -89,19 +89,29 @@ export default function HomePage() {
           <h1 className="text-3xl mb-1">COMMAND DASHBOARD</h1>
           <p className="text-terminal-muted text-sm font-mono">GLOBAL APISHIELD STATUS</p>
         </div>
-        <Link href="/scans/new" className="button focus-visible-ring min-h-[44px] flex items-center justify-center">
-          + INIT NEW SCAN
-        </Link>
+        <div className="flex gap-3">
+          <Link href="/scans/route" className="button bg-terminal-accent/10 border-terminal-accent text-terminal-accent hover:bg-terminal-accent hover:text-terminal-bg focus-visible-ring min-h-[44px] flex items-center justify-center">
+            + ROUTE TEST
+          </Link>
+          <Link href="/scans/new" className="button focus-visible-ring min-h-[44px] flex items-center justify-center">
+            + SPEC SCAN
+          </Link>
+        </div>
       </header>
 
       {totalScans === 0 ? (
         <div className="border border-terminal-border bg-terminal-panel p-12 text-center max-w-2xl mx-auto mt-12">
            <div className="text-terminal-muted text-4xl mb-4">■</div>
            <h2 className="text-terminal-text text-xl mb-2 border-0">SYSTEM STANDBY</h2>
-           <p className="text-terminal-muted text-sm mb-8">No vulnerability sweeps recorded. Upload an OpenAPI specification to arm the system.</p>
-           <Link href="/specifications/new" className="button focus-visible-ring min-h-[44px] inline-flex items-center justify-center">
-             UPLOAD SPECIFICATION
-           </Link>
+           <p className="text-terminal-muted text-sm mb-8">No vulnerability sweeps recorded. Paste a single route to test, or upload an OpenAPI specification.</p>
+           <div className="flex flex-wrap gap-3 justify-center">
+             <Link href="/scans/route" className="button bg-terminal-accent/10 border-terminal-accent text-terminal-accent hover:bg-terminal-accent hover:text-terminal-bg focus-visible-ring min-h-[44px] inline-flex items-center justify-center">
+               ROUTE SECURITY TEST
+             </Link>
+             <Link href="/specifications/new" className="button focus-visible-ring min-h-[44px] inline-flex items-center justify-center">
+               UPLOAD SPECIFICATION
+             </Link>
+           </div>
         </div>
       ) : (
         <div className="flex flex-col gap-6">

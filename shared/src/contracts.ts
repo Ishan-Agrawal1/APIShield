@@ -167,6 +167,18 @@ export interface RequestTemplate {
   omitPathParameter?: string;
 }
 
+export interface RouteScanInput {
+  url: string;
+  method: string;
+  headers?: Record<string, string>;
+  pathParams?: Record<string, string>;
+  queryParams?: Record<string, string | string[]>;
+  body?: unknown;
+  authorization?: string | null;
+  enabledScanners?: ScannerName[];
+  label?: string;
+}
+
 export interface TestCase {
   id: string;
   endpointId: string;

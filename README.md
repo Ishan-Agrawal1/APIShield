@@ -3,9 +3,9 @@
 Automated REST API vulnerability detection for **authorized** local targets. This repository implements the connected MVP:
 
 ```text
-OpenAPI YAML/JSON
-  -> parser / discovery
-  -> deterministic test-case generation
+OpenAPI YAML/JSON  OR  a single pasted route
+  -> route analysis / discovery
+  -> deterministic security test-case generation
   -> central HTTP executor
   -> local notes API (vulnerable and fixed modes)
   -> BOLA, authentication, and misconfiguration checks
@@ -13,6 +13,20 @@ OpenAPI YAML/JSON
   -> rule-based explanation (optional AI)
   -> dashboard and printable report
 ```
+
+## Two ways to start a scan
+
+1. **Route test (quickest).** Paste one authorized route — URL, method, headers, path/query
+   parameters, body, and an optional bearer token — and click **Start Security Test**. APIShield
+   generates ~10–20 controlled cases (normal request, cross-object ids, boundary/malformed ids,
+   missing/invalid/malformed credential, CORS and method probes), executes them, and reports
+   findings. UI: `/scans/route`; API: `POST /api/scans/route` (and `POST /api/scans/route/preview`).
+   Restricted to loopback targets or an approved profile origin.
+2. **Spec-driven.** Upload an OpenAPI document, pick a server-side target profile, and scan the
+   whole declared surface.
+
+Both paths share one pipeline and persist to the same collections, so the scan, finding, and
+report views are identical.
 
 ## Stack
 
@@ -58,6 +72,7 @@ Default ports: backend `127.0.0.1:5000`, frontend `127.0.0.1:3000`, vulnerable A
 The Next.js UI is a connected operator console, not an analytics product.
 
 - `/` scan history
+- `/scans/route` paste-a-route security test (URL, method, headers, path/query params, body, token), with case preview
 - `/specifications/new` OpenAPI upload
 - `/specifications/[id]` discovery and support matrix
 - `/scans/new` target selection, ownership fixtures, optional runtime tokens (component state only), case preview

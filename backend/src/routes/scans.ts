@@ -1,10 +1,51 @@
 import { Router, type Request, type Response, type NextFunction } from 'express';
 import { cancelQueuedOrRunning, createScan, getScan, listScans, previewScan } from '../services/scanService.js';
+import { createRouteScan, previewRouteScan } from '../services/adhocScanService.js';
 import { listFindings } from '../services/findingService.js';
 import { assertReportFormat, buildHtmlReport, buildReport } from '../services/reportService.js';
-import type { ScannerName } from '@apishield/contracts';
+import type { RouteScanInput, ScannerName } from '@apishield/contracts';
 
 const router = Router();
+
+function extractRouteInput(body: unknown): RouteScanInput {
+  const source = (body ?? {}) as Record<string, unknown>;
+  return {
+    url: String(source.url ?? ''),
+    method: String(source.method ?? 'GET'),
+    headers: isStringRecord(source.headers) ? (source.headers as Record<string, string>) : undefined,
+    pathParams: isStringRecord(source.pathParams) ? (source.pathParams as Record<string, string>) : undefined,
+    queryParams: isRecord(source.queryParams) ? (source.queryParams as Record<string, string | string[]>) : undefined,
+    body: source.body,
+    authorization: typeof source.authorization === 'string' ? source.authorization : null,
+    enabledScanners: Array.isArray(source.enabledScanners) ? (source.enabledScanners as ScannerName[]) : undefined,
+    label: typeof source.label === 'string' ? source.label : undefined,
+  };
+}
+
+function isRecord(value: unknown): boolean {
+  return Boolean(value) && typeof value === 'object' && !Array.isArray(value);
+}
+
+function isStringRecord(value: unknown): boolean {
+  return isRecord(value);
+}
+
+router.post('/route/preview', (req: Request, res: Response, next: NextFunction) => {
+  try {
+    res.json(previewRouteScan(extractRouteInput(req.body)));
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.post('/route', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const scan = await createRouteScan(extractRouteInput(req.body));
+    res.status(202).json(scan);
+  } catch (error) {
+    next(error);
+  }
+});
 
 router.post('/preview', async (req: Request, res: Response, next: NextFunction) => {
   try {

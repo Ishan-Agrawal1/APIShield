@@ -23,17 +23,36 @@ Living checklist for the connected MVP. Updated after Phase G verification on 20
 | Day 6 Mongo persistence, control API, reports | Implemented |
 | Day 7 sanitizer, AI interface, Next.js dashboard | Implemented |
 
-## Fresh checks (2026-09-19)
+## Route (ad-hoc) testing mode — added 2026-10-08
+
+A single pasted route can now be tested without an OpenAPI upload, matching the prompt's
+"paste a route → Start Security Test" flow. It reuses the existing executor, credential store,
+persistence, and dashboard.
+
+- Input: `POST /api/scans/route` and `POST /api/scans/route/preview`; UI at `/scans/route`.
+- Route analyzer: `backend/src/scanner/adhoc/routeAnalyzer.ts` (normalizes URL/method/params into the shared `ApiEndpoint`; loopback-or-approved-origin guard).
+- Generator: `backend/src/scanner/adhoc/adhocGenerator.ts` (deterministic 10–20 cases; object-level mutation probes only for safe methods).
+- Runner/analysis: `backend/src/scanner/adhoc/adhocRunner.ts` (new rules `BOLA_READ_CROSS_OBJECT`, `AUTH_WEAK_ENFORCEMENT`, plus the shared misconfiguration rules).
+- Safety: ad-hoc origins are restricted to loopback or an approved profile origin; the DNS guard still blocks metadata/private ranges; runtime tokens are never persisted.
+
+## Fresh checks (2026-10-08)
 
 | Command | Result |
 | --- | --- |
 | `npm run typecheck` (all packages) | PASS |
-| backend `npm run test:unit` | PASS 18/18 |
-| backend `npm run test:integration` (Docker Mongo via `TEST_MONGO_URI`) | PASS 10/10 |
-| frontend `npm run build` | PASS |
-| `npm run demo:verify` | PASS (12 discovered operations, 36 generated cases, repeatable vulnerable findings, fixed control clean of seeded BOLA/auth/misconfig) |
-| Playwright `E2E_FULL` connected flow | NOT_RUN in this pass — smoke spec exists; browsers were not installed as part of this run |
-| `npm run test:unit` for `vulnerable-api` | NOT_RE-RUN here (lab package unchanged in Phase G; prior session 26/26). mongodb-memory-server download was stalled on this host. |
+| backend `npm run test:unit` | PASS 28/28 (18 prior + 10 ad-hoc route/generator) |
+| backend `npm run test:integration` (ephemeral in-memory Mongo) | PASS 13/13 (10 prior + 3 ad-hoc, incl. live BOLA from a pasted route) |
+| frontend `npm run build` | PASS (includes `/scans/route`) |
+| Live local boot (in-memory Mongo, real backend + vulnerable-api) | PASS — paste-a-route demo found HIGH confirmed BOLA on `/api/notes/{id}`; spec-driven demo found 8 findings incl. BOLA/AUTH/misconfig |
+| `npm run demo:verify` | NOT_RUN this pass — requires Docker Mongo (`demo:up`), and the Docker daemon is stopped on this host |
+| Playwright `E2E_FULL` connected flow | NOT_RUN — browsers not installed in this environment |
+
+### Environment note (2026-10-08)
+
+The Docker daemon was stopped and `backend/.env` `MONGO_URI` pointed at a remote cluster, so the
+Docker-based `demo:up` / `demo:verify` path was not exercised. Verification instead used an
+isolated in-memory MongoDB for the backend and the vulnerable-api's built-in in-memory fallback.
+For the standard Docker workflow, start Docker Desktop and run `npm run demo:up`.
 
 ## Known gaps
 

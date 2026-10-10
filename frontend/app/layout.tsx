@@ -24,9 +24,13 @@ export default function RootLayout({ children }: { children: ReactNode }) {
               APIShield
             </a>
             <nav>
-              <a href="/">Scans</a>
-              <a href="/specifications/new">Upload spec</a>
-              <a href="/scans/new">New scan</a>
+              <a href="/" className='m-4'>Scans</a>
+              <a>|</a>
+              <a href="/scans/route" className='m-4'>Route test</a>
+              <a>|</a>
+              <a href="/specifications/new" className='m-4'>Upload spec</a>
+              <a>|</a>
+              <a href="/scans/new" className='m-4'>New scan</a>
             </nav>
           </header>
           <p className="notice">
